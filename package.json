@@ -11,10 +11,13 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.13",
+    "bcryptjs": "^3.0.2",
+    "crypto-js": "^4.2.0",
     "env": "^0.0.2",
     "firebase": "^11.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.3.0",
     "tailwindcss": "^4.0.13"
   },
   "devDependencies": {
