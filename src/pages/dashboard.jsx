@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import AddCardForm from "../components/cardForm"
+import AddCardForm from "../components/cardForm";
 import CardList from "../components/cardList";
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => { // Recebe a função onLogout como prop
   const [cards, setCards] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const saveCard = (card) => {
-    // Adiciona o cartão criptografado ao estado
     setCards([...cards, card]);
   };
 
@@ -20,7 +19,6 @@ const Dashboard = () => {
   };
 
   const handleAddCard = () => {
-    // Função para adicionar cartão (aqui você pode integrar com o processo de cadastro)
     alert("Cadastro de cartão será implementado!");
   };
 
@@ -32,7 +30,10 @@ const Dashboard = () => {
           <img src="logo.svg" alt="GhostCard Logo" className="h-10 w-10 mr-3" />
           <h1 className="text-3xl font-bold">GhostCard</h1>
         </div>
-        <button className="bg-blue-600 px-6 py-2 text-xl font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-200">
+        <button
+          className="bg-blue-600 px-6 py-2 text-xl font-semibold rounded-lg shadow-lg hover:bg-blue-500 transition duration-200"
+          onClick={onLogout} // Chama a função onLogout ao clicar
+        >
           Sair
         </button>
       </header>
@@ -50,7 +51,7 @@ const Dashboard = () => {
           {/* Lista de Cartões Cadastrados */}
           <div className="w-full flex-1">
             <h2 className="text-2xl font-semibold mb-4">Cartões Cadastrados</h2>
-            <CardList/>
+            <CardList />
           </div>
         </div>
       </main>
