@@ -38,12 +38,8 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6">
+      <main className="flex-1 flex flex-col items-center justify-center">
         <div className="text-center p-6 max-w-lg w-full">
-          <p className="text-lg mb-6">
-            Cadastre seus cartões de crédito de forma segura. Todos os dados são
-            criptografados e ocultos, garantindo a sua privacidade.
-          </p>
           <button
             className="bg-green-600 px-6 py-3 text-xl font-semibold rounded-lg shadow-lg hover:bg-green-500 transition duration-200 mb-6"
             onClick={openModal}
@@ -52,7 +48,7 @@ const Dashboard = () => {
           </button>
 
           {/* Lista de Cartões Cadastrados */}
-          <div className="w-full">
+          <div className="w-full flex-1">
             <h2 className="text-2xl font-semibold mb-4">Cartões Cadastrados</h2>
             <CardList/>
           </div>
