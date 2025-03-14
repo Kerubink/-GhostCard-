@@ -1,40 +1,73 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import React, { useState, useEffect } from "react";
+import db from "../db/db"; // Importa a instância do banco de dados
+import CryptoJS from "crypto-js";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+const encryptPin = (pin) => {
+  const secretKey = import.meta.env.VITE_CRYPTO_SECRET_KEY;
+  if (!secretKey) {
+    console.error("Chave secreta não encontrada");
+    return;
+  }
+  return CryptoJS.AES.encrypt(pin, secretKey).toString();
+};
+
+const decryptPin = (encryptedPin) => {
+  const secretKey = import.meta.env.VITE_CRYPTO_SECRET_KEY;
+  if (!secretKey) {
+    console.error("Chave secreta não encontrada");
+    return;
+  }
+  const bytes = CryptoJS.AES.decrypt(encryptedPin, secretKey);
+  return bytes.toString(CryptoJS.enc.Utf8);
+};
+
+const Login = ({ onLogin }) => {
+  const [pin, setPin] = useState("");
+  const [isFirstAccess, setIsFirstAccess] = useState(null); // Começa como `null` para evitar falsos positivos
+
+  // Função para verificar se é o primeiro acesso
+  useEffect(() => {
+    const checkFirstAccess = async () => {
+      const user = await db.user.toArray(); // Pegamos os registros salvos
+      setIsFirstAccess(user.length === 0); // Se não há PIN salvo, é o primeiro acesso
+    };
+
+    checkFirstAccess();
+  }, []);
 
   const handleLogin = async () => {
-    const auth = getAuth();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard"); // Redireciona para a Dashboard
-    } catch (error) {
-      setError("E-mail ou senha incorretos");
+    if (isFirstAccess) {
+      const encryptedPin = encryptPin(pin);
+      await db.user.put({ pin: encryptedPin });
+      alert("PIN cadastrado com sucesso!");
+      setIsFirstAccess(false); // Atualiza para login na próxima vez
+    } else {
+      const user = await db.user.toArray();
+      if (user.length > 0 && decryptPin(user[0].pin) === pin) {
+        onLogin(); // PIN correto, login bem-sucedido
+      } else {
+        alert("PIN incorreto!");
+      }
     }
   };
 
+  if (isFirstAccess === null) {
+    return <p>Carregando...</p>; // Evita exibir informações incorretas antes da verificação
+  }
+
   return (
     <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Digite seu e-mail"
-      />
+      <h1>{isFirstAccess ? "Crie um PIN" : "Digite seu PIN"}</h1>
       <input
         type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Digite sua senha"
+        maxLength={8}
+        value={pin}
+        onChange={(e) => setPin(e.target.value)}
+        placeholder="PIN de 8 dígitos"
       />
-      <button onClick={handleLogin}>Entrar</button>
+      <button onClick={handleLogin}>
+        {isFirstAccess ? "Criar PIN" : "Entrar"}
+      </button>
     </div>
   );
 };

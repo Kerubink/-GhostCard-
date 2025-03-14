@@ -1,0 +1,29 @@
+{
+    "name": "GhostCard",
+    "short_name": "GhostCard",
+    "description": "Aplicativo para visualização segura de dados de cartões",
+    "theme_color": "#000",
+    "background_color": "#000",
+    "display": "standalone",
+    "orientation": "portrait",
+    "scope": "/",
+    "start_url": "/",
+    "icons": [
+      {
+        "src": "/ghost.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/ghost.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      },
+      {
+        "src": "/ghost.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ]
+  }
