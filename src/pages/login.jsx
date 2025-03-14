@@ -41,11 +41,14 @@ const Login = ({ onLogin }) => {
   // Registra uma nova credencial biométrica
   const registerBiometric = async () => {
     try {
+      const userId = new Uint8Array(16); // Gera um ID único para o usuário
+      window.crypto.getRandomValues(userId);
+
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
-        rp: { name: "Secure Card Viewer" }, // Nome do provedor
+        rp: { name: "localhost" }, // Nome do provedor (use seu domínio em produção)
         user: {
-          id: new Uint8Array(16), // ID único do usuário
+          id: userId,
           name: "user@example.com", // Identificador do usuário
           displayName: "Usuário",
         },
@@ -55,11 +58,17 @@ const Login = ({ onLogin }) => {
         authenticatorSelection: {
           userVerification: "required", // Requer verificação do usuário
         },
-        timeout: 60000, // Tempo limite de 60 segundos
+        timeout: 120000, // Tempo limite de 120 segundos
       };
 
       const credential = await navigator.credentials.create({
         publicKey: publicKeyOptions,
+      });
+
+      // Salva a credencial no banco de dados
+      await db.user.put({
+        id: Array.from(userId), // Converte Uint8Array para array normal
+        credential: credential,
       });
 
       console.log("Credencial biométrica registrada:", credential);
@@ -73,9 +82,23 @@ const Login = ({ onLogin }) => {
   // Autentica com biometria
   const authenticateBiometric = async () => {
     try {
+      const user = await db.user.toArray();
+      if (user.length === 0) {
+        alert("Nenhuma credencial biométrica encontrada.");
+        return;
+      }
+
+      const userId = new Uint8Array(user[0].id); // Recupera o ID do usuário
+
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
-        timeout: 60000, // Tempo limite de 60 segundos
+        allowCredentials: [
+          {
+            id: userId,
+            type: "public-key",
+          },
+        ],
+        timeout: 120000, // Tempo limite de 120 segundos
         userVerification: "required", // Requer verificação do usuário
       };
 
