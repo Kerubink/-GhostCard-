@@ -37,8 +37,7 @@ const Login = ({ onLogin }) => {
     checkFirstAccess();
   }, []);
 
-  // Registra uma nova credencial biométrica
- // Registra uma nova credencial biométrica
+// Registra uma nova credencial biométrica
 const registerBiometric = async () => {
   try {
     const userId = new Uint8Array(16); // Gera um ID único para o usuário
@@ -66,13 +65,24 @@ const registerBiometric = async () => {
       publicKey: publicKeyOptions,
     });
 
+    // Extrai os dados serializáveis da credencial
+    const serializableCredential = {
+      id: credential.id,
+      rawId: Array.from(new Uint8Array(credential.rawId)), // Converte ArrayBuffer para array
+      type: credential.type,
+      response: {
+        clientDataJSON: Array.from(new Uint8Array(credential.response.clientDataJSON)),
+        attestationObject: Array.from(new Uint8Array(credential.response.attestationObject)),
+      },
+    };
+
     // Salva a credencial biométrica no banco de dados
     await db.biometricCredentials.put({
       id: Array.from(userId), // Converte Uint8Array para array normal
-      credential: credential,
+      credential: serializableCredential,
     });
 
-    console.log("Credencial biométrica registrada:", credential);
+    console.log("Credencial biométrica registrada:", serializableCredential);
     alert("Biometria registrada com sucesso!");
   } catch (error) {
     console.error("Erro ao registrar biometria:", error);
@@ -91,11 +101,23 @@ const authenticateBiometric = async () => {
 
     const userId = new Uint8Array(credentials[0].id); // Recupera o ID do usuário
 
+    // Converte os dados serializáveis de volta para o formato esperado pela API WebAuthn
+    const credential = credentials[0].credential;
+    const publicKeyCredential = {
+      id: credential.id,
+      rawId: new Uint8Array(credential.rawId).buffer, // Converte array para ArrayBuffer
+      type: credential.type,
+      response: {
+        clientDataJSON: new Uint8Array(credential.response.clientDataJSON).buffer,
+        attestationObject: new Uint8Array(credential.response.attestationObject).buffer,
+      },
+    };
+
     const publicKeyOptions = {
       challenge: new Uint8Array(32), // Desafio aleatório
       allowCredentials: [
         {
-          id: userId,
+          id: publicKeyCredential.rawId,
           type: "public-key",
         },
       ],
@@ -114,7 +136,6 @@ const authenticateBiometric = async () => {
     alert("Falha na autenticação biométrica. Verifique o console para mais detalhes.");
   }
 };
-
   // Login com PIN
   const handleLogin = async () => {
     if (isFirstAccess) {
