@@ -45,7 +45,7 @@ const Login = ({ onLogin }) => {
 
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
-        rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor
+        rp: { name: "https://ghost-card-sigma.vercel.app/" }, // Nome do provedor
         user: {
           id: userId,
           name: "user@example.com", // Identificador do usuário
