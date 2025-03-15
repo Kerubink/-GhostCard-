@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import db from "../db/db";
+import db from "../db/db"; // Importando o banco de dados configurado com Dexie
 import CryptoJS from "crypto-js";
 
 const encryptPin = (pin) => {
@@ -38,80 +38,82 @@ const Login = ({ onLogin }) => {
   }, []);
 
   // Registra uma nova credencial biométrica
-  const registerBiometric = async () => {
-    try {
-      const userId = new Uint8Array(16); // Gera um ID único para o usuário
-      window.crypto.getRandomValues(userId);
+ // Registra uma nova credencial biométrica
+const registerBiometric = async () => {
+  try {
+    const userId = new Uint8Array(16); // Gera um ID único para o usuário
+    window.crypto.getRandomValues(userId);
 
-      const publicKeyOptions = {
-        challenge: new Uint8Array(32), // Desafio aleatório
-        rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor
-        user: {
-          id: userId,
-          name: "user@example.com", // Identificador do usuário
-          displayName: "Usuário",
-        },
-        pubKeyCredParams: [
-          { type: "public-key", alg: -7 }, // Algoritmo ES256
-        ],
-        authenticatorSelection: {
-          userVerification: "required", // Requer verificação do usuário
-        },
-        timeout: 120000, // Tempo limite de 120 segundos
-      };
-
-      const credential = await navigator.credentials.create({
-        publicKey: publicKeyOptions,
-      });
-
-      // Salva a credencial biométrica no banco de dados
-      await db.biometricCredentials.put({
-        id: Array.from(userId), // Converte Uint8Array para array normal
-        credential: credential,
-      });
-
-      console.log("Credencial biométrica registrada:", credential);
-      alert("Biometria registrada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao registrar biometria:", error);
-      alert("Falha ao registrar biometria. Verifique o console para mais detalhes.");
-    }
-  };
-
-  // Autentica com biometria
-  const authenticateBiometric = async () => {
-    try {
-      const credentials = await db.biometricCredentials.toArray();
-      if (credentials.length === 0) {
-        alert("Nenhuma credencial biométrica encontrada.");
-        return;
-      }
-
-      const userId = new Uint8Array(credentials[0].id); // Recupera o ID do usuário
-
-      const publicKeyOptions = {
-        challenge: new Uint8Array(32), // Desafio aleatório
-        allowCredentials: [
-          {
-            id: userId,
-            type: "public-key",
-          },
-        ],
-        timeout: 120000, // Tempo limite de 120 segundos
+    const publicKeyOptions = {
+      challenge: new Uint8Array(32), // Desafio aleatório
+      rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor
+      user: {
+        id: userId,
+        name: "user@example.com", // Identificador do usuário
+        displayName: "Usuário",
+      },
+      pubKeyCredParams: [
+        { type: "public-key", alg: -7 }, // ES256
+        { type: "public-key", alg: -257 }, // RS256
+      ],
+      authenticatorSelection: {
         userVerification: "required", // Requer verificação do usuário
-      };
+      },
+      timeout: 120000, // Tempo limite de 120 segundos
+    };
 
-      const assertion = await navigator.credentials.get({
-        publicKey: publicKeyOptions,
-      });
+    const credential = await navigator.credentials.create({
+      publicKey: publicKeyOptions,
+    });
 
-      console.log("Autenticação biométrica bem-sucedida:", assertion);
-      onLogin(); // Login bem-sucedido
-    } catch (error) {
-      console.error("Erro na autenticação biométrica:", error);
-      alert("Falha na autenticação biométrica. Verifique o console para mais detalhes.");
+    // Salva a credencial biométrica no banco de dados
+    await db.biometricCredentials.put({
+      id: Array.from(userId), // Converte Uint8Array para array normal
+      credential: credential,
+    });
+
+    console.log("Credencial biométrica registrada:", credential);
+    alert("Biometria registrada com sucesso!");
+  } catch (error) {
+    console.error("Erro ao registrar biometria:", error);
+    alert("Falha ao registrar biometria. Verifique o console para mais detalhes.");
+  }
+};
+
+// Autentica com biometria
+const authenticateBiometric = async () => {
+  try {
+    const credentials = await db.biometricCredentials.toArray();
+    if (credentials.length === 0) {
+      alert("Nenhuma credencial biométrica encontrada.");
+      return;
     }
-  };
+
+    const userId = new Uint8Array(credentials[0].id); // Recupera o ID do usuário
+
+    const publicKeyOptions = {
+      challenge: new Uint8Array(32), // Desafio aleatório
+      allowCredentials: [
+        {
+          id: userId,
+          type: "public-key",
+        },
+      ],
+      timeout: 120000, // Tempo limite de 120 segundos
+      userVerification: "required", // Requer verificação do usuário
+    };
+
+    const assertion = await navigator.credentials.get({
+      publicKey: publicKeyOptions,
+    });
+
+    console.log("Autenticação biométrica bem-sucedida:", assertion);
+    onLogin(); // Login bem-sucedido
+  } catch (error) {
+    console.error("Erro na autenticação biométrica:", error);
+    alert("Falha na autenticação biométrica. Verifique o console para mais detalhes.");
+  }
+};
 
   // Login com PIN
   const handleLogin = async () => {
