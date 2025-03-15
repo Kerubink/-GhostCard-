@@ -45,7 +45,7 @@ const Login = ({ onLogin }) => {
 
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
-        rp: { name: "https://ghost-card-sigma.vercel.app/" }, // Nome do provedor
+        rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor
         user: {
           id: userId,
           name: "user@example.com", // Identificador do usuário
@@ -74,7 +74,7 @@ const Login = ({ onLogin }) => {
       alert("Biometria registrada com sucesso!");
     } catch (error) {
       console.error("Erro ao registrar biometria:", error);
-      alert("Falha ao registrar biometria.");
+      alert("Falha ao registrar biometria. Verifique o console para mais detalhes.");
     }
   };
 
@@ -109,7 +109,7 @@ const Login = ({ onLogin }) => {
       onLogin(); // Login bem-sucedido
     } catch (error) {
       console.error("Erro na autenticação biométrica:", error);
-      alert("Falha na autenticação biométrica.");
+      alert("Falha na autenticação biométrica. Verifique o console para mais detalhes.");
     }
   };
 
