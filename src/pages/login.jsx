@@ -24,7 +24,6 @@ const decryptPin = (encryptedPin) => {
 const Login = ({ onLogin }) => {
   const [pin, setPin] = useState("");
   const [isFirstAccess, setIsFirstAccess] = useState(null);
-  const [useBiometric, setUseBiometric] = useState(false);
 
   // Verifica suporte a WebAuthn
   const isWebAuthnSupported = window.PublicKeyCredential !== undefined;
@@ -46,7 +45,7 @@ const Login = ({ onLogin }) => {
 
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
-        rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor (use seu domínio em produção)
+        rp: { name: "https://ghost-card-sigma.vercel.app" }, // Nome do provedor
         user: {
           id: userId,
           name: "user@example.com", // Identificador do usuário
@@ -65,8 +64,8 @@ const Login = ({ onLogin }) => {
         publicKey: publicKeyOptions,
       });
 
-      // Salva a credencial no banco de dados
-      await db.user.put({
+      // Salva a credencial biométrica no banco de dados
+      await db.biometricCredentials.put({
         id: Array.from(userId), // Converte Uint8Array para array normal
         credential: credential,
       });
@@ -82,13 +81,13 @@ const Login = ({ onLogin }) => {
   // Autentica com biometria
   const authenticateBiometric = async () => {
     try {
-      const user = await db.user.toArray();
-      if (user.length === 0) {
+      const credentials = await db.biometricCredentials.toArray();
+      if (credentials.length === 0) {
         alert("Nenhuma credencial biométrica encontrada.");
         return;
       }
 
-      const userId = new Uint8Array(user[0].id); // Recupera o ID do usuário
+      const userId = new Uint8Array(credentials[0].id); // Recupera o ID do usuário
 
       const publicKeyOptions = {
         challenge: new Uint8Array(32), // Desafio aleatório
